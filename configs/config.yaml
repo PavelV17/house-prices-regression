@@ -1,0 +1,109 @@
+experiment:
+  name: baseline
+random_state: 42
+n_splits: 5
+scoring: neg_root_mean_squared_error
+paths:
+  data_dir: data
+  results_dir: results
+  submissions_dir: submissions
+  train_file: train.csv
+  test_file: test.csv
+  sample_submission_file: sample_submission.csv
+  data_description_file: data_description.txt
+columns:
+  id: Id
+  target: SalePrice
+preprocessing:
+  remove_outliers: true
+  outlier_ids:
+  - 524
+  - 1299
+  categorical_numeric_features:
+  - MSSubClass
+  invalid_numeric_values:
+    GarageYrBlt:
+      min: 1800
+      max_relative_to_column: YrSold
+      replacement: null
+  numeric_imputer_strategy: median
+  categorical_imputer_strategy: constant
+  categorical_fill_value: None
+  one_hot_handle_unknown: ignore
+  use_standard_scaler: true
+models:
+  lasso:
+    alpha: 0.0005
+    max_iter: 20000
+    random_state: 42
+  catboost:
+    iterations: 800
+    learning_rate: 0.03
+    depth: 5
+    l2_leaf_reg: 3
+    loss_function: RMSE
+    random_state: 42
+    verbose: 0
+    allow_writing_files: false
+    thread_count: -1
+  stacking:
+    meta_model: ridge
+    ridge_alpha: 1.0
+    cv: 5
+    passthrough: false
+ensemble:
+  method: weighted_average
+  weights:
+    lasso: 0.6
+    catboost: 0.4
+torch_mlp:
+  validation_size: 0.2
+  hidden_dims:
+  - 256
+  - 128
+  dropout: 0.1
+  learning_rate: 0.0005
+  weight_decay: 0.0001
+  batch_size: 32
+  epochs: 250
+  patience: 25
+  device: auto
+optuna:
+  n_trials: 20
+  timeout: null
+  output_filename: optuna_trials.csv
+  best_config_filename: optuna_best_config.yaml
+  search_space:
+    lasso_alpha:
+      low: 0.0001
+      high: 0.002
+      log: true
+    catboost_iterations:
+      low: 500
+      high: 1000
+      step: 100
+    catboost_learning_rate:
+      low: 0.02
+      high: 0.07
+      log: true
+    catboost_depth:
+      low: 4
+      high: 6
+      step: 1
+    catboost_l2_leaf_reg:
+      low: 1.0
+      high: 5.0
+      log: true
+    ensemble_lasso_weight:
+      low: 0.45
+      high: 0.75
+      log: false
+artifacts:
+  final_model_filename: final_lasso_catboost_ensemble.joblib
+  final_metrics_filename: final_model_metrics.csv
+  all_model_results_filename: all_model_results.csv
+  experiments_filename: experiments.csv
+  final_submission_filename: final_lasso_catboost_ensemble_submission.csv
+  torch_mlp_metrics_filename: torch_mlp_metrics.csv
+  optuna_trials_filename: optuna_trials.csv
+  optuna_best_config_filename: optuna_best_config.yaml

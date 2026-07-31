@@ -1,0 +1,2 @@
+valid_rmse_log,valid_mae_price,valid_rmse_price,valid_mape_percent,valid_wape_percent,epochs_requested,epochs_ran,batch_size,learning_rate,weight_decay,dropout,hidden_dims,patience,device,best_valid_loss
+0.14665042711251133,19157.67785477311,25747.762738741614,11.166554897905137,10.562791935317353,250,201,32,0.0005,0.0001,0.1,256-128,25,cpu,0.02150634676218033

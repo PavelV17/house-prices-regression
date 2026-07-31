@@ -1,0 +1,16 @@
+# Example config for a stacking ensemble experiment.
+# Run:
+#   python main.py --config configs/stacking.yaml --experiment stacking
+
+experiment:
+  name: stacking
+
+ensemble:
+  method: stacking
+
+models:
+  stacking:
+    meta_model: ridge
+    ridge_alpha: 1.0
+    cv: 5
+    passthrough: false
