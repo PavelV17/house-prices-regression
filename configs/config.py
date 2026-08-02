@@ -102,6 +102,15 @@ DEFAULT_CONFIG: dict[str, Any] = {
             "ensemble_lasso_weight": {"low": 0.45, "high": 0.75, "log": False},
         },
     },
+    "time_validation": {
+        "min_train_months": 24,
+        "validation_months": 6,
+        "test_months": 6,
+        "step_months": 6,
+        "min_train_size": 400,
+        "min_validation_size": 50,
+        "min_test_size": 50,
+    },
     "artifacts": {
         "final_model_filename": "final_lasso_catboost_ensemble.joblib",
         "final_metrics_filename": "final_model_metrics.csv",
@@ -111,6 +120,8 @@ DEFAULT_CONFIG: dict[str, Any] = {
         "torch_mlp_metrics_filename": "torch_mlp_metrics.csv",
         "optuna_trials_filename": "optuna_trials.csv",
         "optuna_best_config_filename": "optuna_best_config.yaml",
+        "time_validation_splits_filename": "time_validation_splits.csv",
+        "time_validation_summary_filename": "time_validation_summary.csv",
     },
 }
 
@@ -176,6 +187,8 @@ def get_artifact_paths(config: dict[str, Any]) -> dict[str, Path]:
         "torch_mlp_metrics": results_dir / artifacts["torch_mlp_metrics_filename"],
         "optuna_trials": results_dir / artifacts["optuna_trials_filename"],
         "optuna_best_config": results_dir / artifacts["optuna_best_config_filename"],
+        "time_validation_splits": results_dir / artifacts["time_validation_splits_filename"],
+        "time_validation_summary": results_dir / artifacts["time_validation_summary_filename"],
     }
 
 
@@ -224,3 +237,5 @@ FINAL_SUBMISSION_PATH = ARTIFACT_PATHS["final_submission"]
 TORCH_MLP_METRICS_PATH = ARTIFACT_PATHS["torch_mlp_metrics"]
 OPTUNA_TRIALS_PATH = ARTIFACT_PATHS["optuna_trials"]
 OPTUNA_BEST_CONFIG_PATH = ARTIFACT_PATHS["optuna_best_config"]
+TIME_VALIDATION_SPLITS_PATH = ARTIFACT_PATHS["time_validation_splits"]
+TIME_VALIDATION_SUMMARY_PATH = ARTIFACT_PATHS["time_validation_summary"]

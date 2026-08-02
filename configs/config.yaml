@@ -107,3 +107,13 @@ artifacts:
   torch_mlp_metrics_filename: torch_mlp_metrics.csv
   optuna_trials_filename: optuna_trials.csv
   optuna_best_config_filename: optuna_best_config.yaml
+  time_validation_splits_filename: time_validation_splits.csv
+  time_validation_summary_filename: time_validation_summary.csv
+time_validation:
+  min_train_months: 24
+  validation_months: 6
+  test_months: 6
+  step_months: 6
+  min_train_size: 400
+  min_validation_size: 50
+  min_test_size: 50

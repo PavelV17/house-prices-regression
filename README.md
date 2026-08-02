@@ -52,6 +52,7 @@ np.expm1(prediction_log)
 | Level | Для чего используется | Что означает |
 |---|---|---|
 | Cross-validation / OOF | выбор модели и гиперпараметров | внутренняя оценка на `train.csv` |
+| Production-style time validation | проверка стабильности на будущих периодах | train/validation/test split по `YrSold` и `MoSold` |
 | Kaggle Public Score | внешняя проверка на скрытых ответах Kaggle | проверка на test set соревнования |
 | PyTorch validation split | отдельный DL-эксперимент | не сравнивается напрямую с CV-таблицей |
 
@@ -132,6 +133,12 @@ python run_optuna.py --config configs/config.yaml --trials 100 --experiment optu
 python main.py --config results/optuna_best_config.yaml --experiment optuna_100_best
 ```
 
+Production-style time-based validation:
+
+```bash
+python run_time_validation.py --config configs/config.yaml
+```
+
 ---
 
 ## 6. Что делает `main.py`
@@ -170,6 +177,8 @@ HousePrices/
 │   ├── final_model_metrics.csv
 │   ├── optuna_best_config.yaml
 │   ├── optuna_best_trial.csv
+│   ├── time_validation_splits.csv
+│   ├── time_validation_summary.csv
 │   └── torch_mlp_metrics.csv
 ├── src/
 │   ├── data.py
@@ -177,6 +186,7 @@ HousePrices/
 │   ├── inference.py
 │   ├── models.py
 │   ├── submission.py
+│   ├── time_validation.py
 │   ├── torch_mlp.py
 │   └── train.py
 ├── submissions/
@@ -184,6 +194,7 @@ HousePrices/
 ├── main.py
 ├── run_torch_mlp.py
 ├── run_optuna.py
+├── run_time_validation.py
 ├── README.md
 ├── requirements.txt
 └── .gitignore
@@ -377,7 +388,49 @@ results/optuna_best_config.yaml
 
 ---
 
-## 13. PyTorch MLP baseline
+
+## 13. Production-style time-based validation
+
+В проект добавлен отдельный режим валидации, который имитирует реальную production-ситуацию: модель обучается только на прошлых продажах и проверяется на будущих продажах.
+
+Запуск:
+
+```bash
+python run_time_validation.py --config configs/config.yaml
+```
+
+Что делает скрипт:
+
+1. берёт только `data/train.csv`, потому что там есть `SalePrice`;
+2. строит временную ось по `YrSold` и `MoSold`;
+3. создаёт expanding-window split-ы;
+4. для каждого split обучает модель на прошлом периоде;
+5. считает validation-метрики на следующем периоде;
+6. считает test-метрики на ещё более будущем периоде;
+7. сохраняет статистику по test-метрикам.
+
+По умолчанию используется схема:
+
+```text
+train: expanding window
+validation: следующие 6 месяцев
+test: следующие 6 месяцев
+step: 6 месяцев
+```
+
+Важно: preprocessing fit-ится только на train-части каждого split. Validation и test только трансформируются через pipeline. Это защищает от temporal leakage.
+
+Выходные файлы:
+
+```text
+results/time_validation_splits.csv
+results/time_validation_summary.csv
+```
+
+`time_validation_splits.csv` содержит метрики по каждому временному split. `time_validation_summary.csv` содержит `mean`, `std`, `min`, `max` по test-метрикам.
+
+---
+## 14. PyTorch MLP baseline
 
 В проект добавлен отдельный PyTorch baseline:
 
@@ -417,7 +470,7 @@ python run_torch_mlp.py --config configs/config.yaml
 
 ---
 
-## 14. Inference-only запуск
+## 15. Inference-only запуск
 
 После обучения можно не переобучать модель, а только создать submission из сохранённой модели:
 
@@ -433,7 +486,7 @@ results/final_lasso_catboost_ensemble.joblib
 
 ---
 
-## 15. Выходные файлы
+## 16. Выходные файлы
 
 После `python main.py` создаются:
 
@@ -457,6 +510,13 @@ results/optuna_trials.csv
 results/optuna_best_config.yaml
 ```
 
+После `python run_time_validation.py`:
+
+```text
+results/time_validation_splits.csv
+results/time_validation_summary.csv
+```
+
 Файл для загрузки на Kaggle:
 
 ```text
@@ -465,7 +525,7 @@ submissions/final_lasso_catboost_ensemble_submission.csv
 
 ---
 
-## 16. Статус проекта
+## 17. Статус проекта
 
 ```text
 EDA                                      ✅
@@ -484,4 +544,5 @@ Pinned requirements                      ✅
 YAML experiment config                   ✅
 Experiment tracking CSV                  ✅
 Business metrics MAPE/WAPE               ✅
+Production-style time validation          ✅
 ```
